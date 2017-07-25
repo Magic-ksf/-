@@ -1,0 +1,182 @@
+<html><head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style type="text/css">
+    * {
+        padding: 0;
+        margin: 0;
+    }
+    
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+    }
+    
+    #box,#box2,#box3 {
+        margin: auto;
+        width: 657px;
+        height: 340px;
+        border: 1px solid #000000;
+        position: relative;
+        float: left;
+    }
+    
+    div.item {
+        width: 150px;
+        height: 100px;
+        border-radius: 5px;
+        margin: 5px;
+        float: left;
+        background: goldenrod;
+        border: 1px solid lightgray;
+        z-index: 1;
+        text-align: center;
+        font-size: 30px;
+        line-height: 100px;
+        cursor: move;
+    }
+    
+    div.moving {
+        border: 1px dashed gray;
+        background: white;
+    }
+    
+    div.draging {
+        width: 150px;
+        height: 100px;
+        position: absolute;
+        background: goldenrod;
+        box-shadow: 0 0 2px 2px #555;
+        border-radius: 5px;
+        z-index: 500;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="box">
+        <div class="item">1</div>
+        <div class="item">2</div>
+        <div class="item">3</div>
+        <div class="item">4</div>
+        <div class="item">5</div>
+        <div class="item">6</div>
+        <div class="item">7</div>
+        <div class="item">8</div>
+        <div class="item">9</div>
+    </div>
+    
+    <div id="box2">
+        <div class="item">10</div>
+        <div class="item">11</div>
+        <div class="item">12</div>
+        <div class="item">13</div>
+        <div class="item">14</div>
+        <div class="item">15</div>
+        <div class="item">16</div>
+        <div class="item">17</div>
+        <div class="item">18</div>
+    </div>
+    
+    <div id="box3">
+        <div class="item">101</div>
+        <div class="item">112</div>
+        <div class="item">123</div>
+        <div class="item">134</div>
+        <div class="item">145</div>
+        <div class="item">156</div>
+        <div class="item">167</div>
+        <div class="item">178</div>
+        <div class="item">189</div>
+    </div>
+   <script src="http://www.jq22.com/jquery/jquery-1.10.2.js"></script><script src="http://libs.baidu.com/jquery/1.10.2/jquery.min.js"></script>
+    <script type="text/javascript">
+    var bstop = true;
+    $('.item').on('mousedown', function(e) {
+        if (bstop) {
+            bstop = false;
+            var that = this;
+            var disx = e.offsetX; //获取的拖拽过程的短线的长度（鼠标的位置离盒子边缘的位置）
+            var disy = e.offsetY;
+            var $clone = $(this).clone(); //克隆
+            $clone.addClass('draging').css({ //对克隆的盒子设置类名以及位置
+                left: $(this).position().left,
+                top: $(this).position().top
+            });
+            $(this).parent().append($clone); //追加到box里面
+            $(this).addClass('moving').html(''); //被克隆的元素添加类移除内容
+            $(this).parent().on('mousemove', function(e) { //对克隆的盒子进行拖拽
+                $clone.css({
+                    left: e.pageX - $(this).offset().left - disx,
+                    top: e.pageY - $(this).offset().top - disy
+                })
+            });
+            //console.log($(this).parent())  点下那个按钮的父级元素
+            $clone.on('mouseup', function(ev) {
+                $(that).parent().off('mousemove'); //取消mousemove事件
+                //console.log($(that).parent())
+                var minIndex = $(that).index(); //最小索引赋初始值  点下的那个按钮的索引
+                var parentCode = $(that).parent();
+                var maxIndex = '';
+                var _clone=this;
+                //console.log($(that))
+                var minValue = 1900; //初始化最小值，用来存储所有盒子的最小值
+                var _this = '';
+                //console.log(e.pageX)
+                $('.item').not('.draging').each(function(e) {//不包括克隆的那个盒子
+                    
+                    var smalldistance = Math.sqrt(Math.pow($(_clone).offset().left - $(this).offset().left, 2) + Math.pow($(_clone).offset().top - $(this).offset().top, 2)); //利用勾股定理获取每一个盒子离克隆出来的盒子的距离
+                    
+                    if(smalldistance < minValue) { //比较
+                        minValue = smalldistance; //获取最小值
+                        
+                        minIndex = $(this).index(); //获取最小值对应的索引
+                        parentCode = $(this).parent();
+                        _this = $(this); //
+                    }
+                });
+                //console.log(_this)
+                if (parentCode == $(that).parent()) { //如果当前最小距离的那个盒子和拖拽的盒子索引相等的话，归位。
+                   console.log(1)
+                    $clone.animate($(that).position(), 400, function() {
+                        $(that).removeClass('moving').html($clone.html()); //恢复被克隆盒子的相关样式
+                        $(this).remove(); //移除被克隆的盒子
+                        bstop=true;
+                    });
+                } else {
+                    
+                    var $minbox = $(_this).parent().children('.item').eq(minIndex); //最小索引的盒子
+                    if($minbox.html() == ''  
+
+                        ){
+                        $minbox = $clone;
+                    }
+                    var $clone2 = $minbox.clone(); //克隆一个最小盒子的副本，添加相关样式
+                    $clone2.addClass('draging').css({
+                        left: $minbox.position().left,
+                        top: $minbox.position().top
+                    })
+                    //console.log($(_this).parent())
+                    $(_this).parent().append($clone2); //追加
+                    $minbox.addClass('moving').html('');
+                    $clone.animate($minbox.position(), 10, function() { //克隆的内容运动到最小索引的盒子的位置
+                        $minbox.removeClass('moving').html($clone.html()); //移除相关样式，添加内容
+                        $clone.remove(); //移除克隆的盒子
+                        bstop = true;
+                    });
+                    $clone2.animate($(that).position(), 10, function() {
+                        $(that).removeClass('moving').html($clone2.html());
+                        $clone2.remove();
+                        bstop = true;
+                    });
+                }
+            });
+        }
+        return false;
+    });
+    </script>
+
+
+
+</body></html>
